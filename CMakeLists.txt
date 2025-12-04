@@ -10,3 +10,9 @@ endif()
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -flto -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fsanitize=address,undefined")
+
+add_executable(test_cfr tests/test_cfr.cpp)
+target_include_directories(test_cfr PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+enable_testing()
+add_test(NAME cfr_tests COMMAND test_cfr)
