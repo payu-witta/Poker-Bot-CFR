@@ -4,6 +4,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 
 static int passed = 0;
 static int failed = 0;
@@ -64,6 +65,16 @@ void collect_terminals(const std::shared_ptr<GameNode>& node, std::vector<std::s
     for (auto& a : node->legal_actions()) collect_terminals(node->apply_action(a), out);
 }
 
+void collect_info_set_keys(const std::shared_ptr<GameNode>& node, std::unordered_map<std::string, int>& keys) {
+    if (node->is_terminal()) return;
+    if (node->is_chance_node()) {
+        for (auto& [next, prob] : node->chance_outcomes()) collect_info_set_keys(next, keys);
+        return;
+    }
+    keys[node->information_set_key()]++;
+    for (auto& a : node->legal_actions()) collect_info_set_keys(node->apply_action(a), keys);
+}
+
 void test_kuhn_terminal_count() {
     auto root = std::make_shared<KuhnNode>(-1, -1, "");
     int n = count_terminals(root);
@@ -104,12 +115,36 @@ void test_kuhn_showdown_utilities() {
     ASSERT_NEAR(cbc->utility(0), 2.0, 1e-9, "Q beats J at cbc");
 }
 
+void test_kuhn_info_set_keys() {
+    auto s1 = std::make_shared<KuhnNode>(2, 0, "");
+    ASSERT(s1->information_set_key() == "K:", "p0 with K and no history should be K:");
+
+    auto s2 = std::make_shared<KuhnNode>(2, 1, "b");
+    ASSERT(s2->current_player() == 1, "p1 acts after p0 bets");
+    ASSERT(s2->information_set_key() == "Q:b", "p1 with Q facing a bet should be Q:b");
+
+    auto s3 = std::make_shared<KuhnNode>(0, 2, "cb");
+    ASSERT(s3->current_player() == 0, "p0 acts at cb");
+    ASSERT(s3->information_set_key() == "J:cb", "p0 with J at cb should be J:cb");
+}
+
+void test_kuhn_info_set_count() {
+    auto root = std::make_shared<KuhnNode>(-1, -1, "");
+    std::unordered_map<std::string, int> keys;
+    collect_info_set_keys(root, keys);
+    std::cout << "  info sets: " << keys.size() << "
+";
+    ASSERT(keys.size() == 12, "expected 12 info sets, got " + std::to_string(keys.size()));
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
     run_test("zero-sum property", test_kuhn_zero_sum);
     run_test("fold utilities", test_kuhn_fold_utilities);
     run_test("showdown utilities", test_kuhn_showdown_utilities);
+    run_test("info set keys", test_kuhn_info_set_keys);
+    run_test("info set count", test_kuhn_info_set_count);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;
