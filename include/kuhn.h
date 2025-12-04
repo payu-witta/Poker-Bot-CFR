@@ -22,9 +22,13 @@ public:
 
     double utility(int player) const override {
         auto f = history.find('f');
-        if (f == std::string::npos) return 0.0;
-        int winner = 1 - static_cast<int>(f) % 2;
-        return winner == player ? 1.0 : -1.0;
+        if (f != std::string::npos) {
+            int winner = 1 - static_cast<int>(f) % 2;
+            return winner == player ? 1.0 : -1.0;
+        }
+        double pot = (history == "bc" || history == "cbc") ? 2.0 : 1.0;
+        int winner = p0_card < p1_card ? 0 : 1;
+        return winner == player ? pot : -pot;
     }
 
     std::vector<std::pair<std::shared_ptr<GameNode>, double>> chance_outcomes() const override {
