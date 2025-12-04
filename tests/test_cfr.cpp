@@ -132,8 +132,7 @@ void test_kuhn_info_set_count() {
     auto root = std::make_shared<KuhnNode>(-1, -1, "");
     std::unordered_map<std::string, int> keys;
     collect_info_set_keys(root, keys);
-    std::cout << "  info sets: " << keys.size() << "
-";
+    std::cout << "  info sets: " << keys.size() << "\n";
     ASSERT(keys.size() == 12, "expected 12 info sets, got " + std::to_string(keys.size()));
 }
 
