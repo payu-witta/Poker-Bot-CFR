@@ -27,7 +27,7 @@ public:
             return winner == player ? 1.0 : -1.0;
         }
         double pot = (history == "bc" || history == "cbc") ? 2.0 : 1.0;
-        int winner = p0_card < p1_card ? 0 : 1;
+        int winner = p0_card > p1_card ? 0 : 1;
         return winner == player ? pot : -pot;
     }
 

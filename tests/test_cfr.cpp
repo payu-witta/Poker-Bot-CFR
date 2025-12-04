@@ -79,10 +79,37 @@ void test_kuhn_zero_sum() {
     std::cout << "  zero-sum at " << terms.size() << " terminals\n";
 }
 
+void test_kuhn_fold_utilities() {
+    auto bf = std::make_shared<KuhnNode>(2, 0, "bf");
+    ASSERT(bf->is_terminal(), "bf must be terminal");
+    ASSERT_NEAR(bf->utility(0), 1.0, 1e-9, "p0 wins the ante when p1 folds to a bet");
+    ASSERT_NEAR(bf->utility(1), -1.0, 1e-9, "p1 loses the ante when folding");
+
+    auto cbf = std::make_shared<KuhnNode>(0, 2, "cbf");
+    ASSERT(cbf->is_terminal(), "cbf must be terminal");
+    ASSERT_NEAR(cbf->utility(0), -1.0, 1e-9, "p0 loses the ante after folding to a bet");
+    ASSERT_NEAR(cbf->utility(1), 1.0, 1e-9, "p1 wins the ante when p0 folds");
+}
+
+void test_kuhn_showdown_utilities() {
+    auto cc = std::make_shared<KuhnNode>(2, 0, "cc");
+    ASSERT_NEAR(cc->utility(0), 1.0, 1e-9, "K beats J at cc");
+    ASSERT_NEAR(cc->utility(1), -1.0, 1e-9, "J loses to K at cc");
+
+    auto bc = std::make_shared<KuhnNode>(0, 2, "bc");
+    ASSERT_NEAR(bc->utility(0), -2.0, 1e-9, "J loses 2 at bc showdown");
+    ASSERT_NEAR(bc->utility(1), 2.0, 1e-9, "K wins 2 at bc showdown");
+
+    auto cbc = std::make_shared<KuhnNode>(1, 0, "cbc");
+    ASSERT_NEAR(cbc->utility(0), 2.0, 1e-9, "Q beats J at cbc");
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
     run_test("zero-sum property", test_kuhn_zero_sum);
+    run_test("fold utilities", test_kuhn_fold_utilities);
+    run_test("showdown utilities", test_kuhn_showdown_utilities);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;
