@@ -152,6 +152,30 @@ void test_leduc_zero_sum() {
     std::cout << "  zero-sum at " << terms.size() << " terminals\n";
 }
 
+void test_leduc_fold_utilities() {
+    // p0 bets (3 in), p1 folds (1 in): p0 nets +1
+    auto bf = std::make_shared<LeducNode>(2, 0, -1, 1, "bf", "");
+    ASSERT(bf->is_terminal(), "bf must be terminal");
+    ASSERT_NEAR(bf->utility(0), 1.0, 1e-9, "p0 wins 1 when p1 folds to a bet");
+    ASSERT_NEAR(bf->utility(1), -1.0, 1e-9, "p1 loses 1 when folding");
+
+    // p0 bets (3 in), p1 raises (5 in), p0 folds: p0 nets -3
+    auto bbf = std::make_shared<LeducNode>(0, 2, -1, 1, "bbf", "");
+    ASSERT(bbf->is_terminal(), "bbf must be terminal");
+    ASSERT_NEAR(bbf->utility(0), -3.0, 1e-9, "p0 loses 3 after raise-fold");
+    ASSERT_NEAR(bbf->utility(1), 3.0, 1e-9, "p1 wins 3 after raise-fold");
+}
+
+void test_leduc_showdown_winner() {
+    auto pair = std::make_shared<LeducNode>(0, 2, 0, 2, "cc", "cc");
+    ASSERT_NEAR(pair->utility(0), 1.0, 1e-9, "pair of J beats K high");
+    ASSERT_NEAR(pair->utility(1), -1.0, 1e-9, "K high loses to pair");
+
+    auto tie = std::make_shared<LeducNode>(1, 1, 0, 2, "cc", "cc");
+    ASSERT_NEAR(tie->utility(0), 0.0, 1e-9, "Q vs Q ties for p0");
+    ASSERT_NEAR(tie->utility(1), 0.0, 1e-9, "Q vs Q ties for p1");
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -164,6 +188,8 @@ int main() {
     std::cout << "--- Leduc Hold'em ---\n\n";
     run_test("terminal node count", test_leduc_terminal_count);
     run_test("zero-sum property", test_leduc_zero_sum);
+    run_test("fold utilities", test_leduc_fold_utilities);
+    run_test("showdown winner", test_leduc_showdown_winner);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;
