@@ -93,6 +93,26 @@ public:
         return winner == player ? total - mine : -mine;
     }
 
+    std::vector<std::pair<std::shared_ptr<GameNode>, double>> chance_outcomes() const override {
+        std::vector<std::pair<std::shared_ptr<GameNode>, double>> out;
+        if (chance_type == 0) {
+            for (auto [c0, c1, prob] : hole_deals()) {
+                out.push_back({std::make_shared<LeducNode>(c0, c1, -1, 1, "", ""), prob});
+            }
+            return out;
+        }
+
+        std::vector<int> deck = {0, 0, 1, 1, 2, 2};
+        deck.erase(std::find(deck.begin(), deck.end(), p0_card));
+        deck.erase(std::find(deck.begin(), deck.end(), p1_card));
+        std::unordered_map<int, int> counts;
+        for (int c : deck) counts[c]++;
+        for (auto& [card, n] : counts) {
+            out.push_back({std::make_shared<LeducNode>(p0_card, p1_card, card, 2, history_r1, ""), static_cast<double>(n) / deck.size()});
+        }
+        return out;
+    }
+
     std::vector<std::string> legal_actions() const override {
         const std::string& h = round_num == 1 ? history_r1 : history_r2;
         if (!h.empty() && h.back() == 'b') {
@@ -101,6 +121,14 @@ public:
             return acts;
         }
         return {"c", "b"};
+    }
+
+    std::shared_ptr<GameNode> apply_action(const std::string& action) const override {
+        if (round_num == 2) return std::make_shared<LeducNode>(p0_card, p1_card, community, 2, history_r1, history_r2 + action);
+
+        std::string h1 = history_r1 + action;
+        if (action != "f" && round_complete(h1)) return std::make_shared<LeducNode>(p0_card, p1_card, -1, 1, h1, "", true, 1);
+        return std::make_shared<LeducNode>(p0_card, p1_card, community, 1, h1, "");
     }
 
     std::string information_set_key() const override {
