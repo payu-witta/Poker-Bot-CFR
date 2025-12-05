@@ -1,4 +1,5 @@
 #include "kuhn.h"
+#include "leduc.h"
 
 #include <cmath>
 #include <functional>
@@ -136,6 +137,21 @@ void test_kuhn_info_set_count() {
     ASSERT(keys.size() == 12, "expected 12 info sets, got " + std::to_string(keys.size()));
 }
 
+std::shared_ptr<GameNode> leduc_root() { return std::make_shared<LeducNode>(-1, -1, -1, 1, "", "", true, 0); }
+
+void test_leduc_terminal_count() {
+    int n = count_terminals(leduc_root());
+    std::cout << "  terminal nodes: " << n << "\n";
+    ASSERT(n == 1116, "expected 1116 terminals, got " + std::to_string(n));
+}
+
+void test_leduc_zero_sum() {
+    std::vector<std::shared_ptr<GameNode>> terms;
+    collect_terminals(leduc_root(), terms);
+    for (auto& t : terms) ASSERT_NEAR(t->utility(0) + t->utility(1), 0.0, 1e-9, "zero-sum violated at leduc terminal");
+    std::cout << "  zero-sum at " << terms.size() << " terminals\n";
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -144,6 +160,10 @@ int main() {
     run_test("showdown utilities", test_kuhn_showdown_utilities);
     run_test("info set keys", test_kuhn_info_set_keys);
     run_test("info set count", test_kuhn_info_set_count);
+
+    std::cout << "--- Leduc Hold'em ---\n\n";
+    run_test("terminal node count", test_leduc_terminal_count);
+    run_test("zero-sum property", test_leduc_zero_sum);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;
