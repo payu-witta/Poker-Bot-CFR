@@ -176,6 +176,38 @@ void test_leduc_showdown_winner() {
     ASSERT_NEAR(tie->utility(1), 0.0, 1e-9, "Q vs Q ties for p1");
 }
 
+void test_leduc_info_set_keys() {
+    auto s1 = std::make_shared<LeducNode>(2, 0, -1, 1, "", "");
+    ASSERT(s1->information_set_key() == "K:r1:", "round 1 p0 with K should be K:r1:");
+
+    auto s2 = std::make_shared<LeducNode>(2, 1, -1, 1, "b", "");
+    ASSERT(s2->current_player() == 1, "p1 acts after p0 bets");
+    ASSERT(s2->information_set_key() == "Q:r1:b", "round 1 p1 with Q facing a bet should be Q:r1:b");
+
+    auto s3 = std::make_shared<LeducNode>(1, 0, 2, 2, "cc", "");
+    ASSERT(s3->information_set_key() == "Q:K:r2:cc|", "round 2 p0 with Q and K community should be Q:K:r2:cc|");
+
+    auto s4 = std::make_shared<LeducNode>(0, 2, 2, 2, "bc", "b");
+    ASSERT(s4->current_player() == 1, "p1 acts after p0 bets in round 2");
+    ASSERT(s4->information_set_key() == "K:K:r2:bc|b", "round 2 p1 with K and K community should be K:K:r2:bc|b");
+}
+
+void test_leduc_info_set_count() {
+    std::unordered_map<std::string, int> keys;
+    collect_info_set_keys(leduc_root(), keys);
+    std::cout << "  info sets: " << keys.size() << "\n";
+    ASSERT(keys.size() == 288, "expected 288 info sets, got " + std::to_string(keys.size()));
+}
+
+void test_leduc_raise_cap() {
+    auto has_bet = [](const LeducNode& n) {
+        auto acts = n.legal_actions();
+        return std::find(acts.begin(), acts.end(), "b") != acts.end();
+    };
+    ASSERT(!has_bet(LeducNode(2, 0, -1, 1, "bb", "")), "no raise after 2 bets");
+    ASSERT(has_bet(LeducNode(2, 0, -1, 1, "b", "")), "raise should be allowed after 1 bet");
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -190,6 +222,9 @@ int main() {
     run_test("zero-sum property", test_leduc_zero_sum);
     run_test("fold utilities", test_leduc_fold_utilities);
     run_test("showdown winner", test_leduc_showdown_winner);
+    run_test("info set keys", test_leduc_info_set_keys);
+    run_test("info set count", test_leduc_info_set_count);
+    run_test("raise cap", test_leduc_raise_cap);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;
