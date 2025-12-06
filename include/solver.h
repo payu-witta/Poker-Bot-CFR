@@ -23,4 +23,12 @@ struct InfoSetData {
         for (double& x : s) x = total > 0.0 ? x / total : 1.0 / s.size();
         return s;
     }
+
+    std::vector<double> average_strategy() const {
+        std::vector<double> s = strat_sum;
+        double total = 0.0;
+        for (double x : s) total += x;
+        for (double& x : s) x = total > 0.0 ? x / total : 1.0 / s.size();
+        return s;
+    }
 };
