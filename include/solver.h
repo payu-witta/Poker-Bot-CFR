@@ -34,6 +34,8 @@ struct InfoSetData {
     }
 };
 
+using StrategyMap = std::unordered_map<std::string, std::unordered_map<std::string, double>>;
+
 class CFRSolver {
 public:
     std::unordered_map<std::string, InfoSetData> info_sets;
@@ -46,6 +48,15 @@ public:
             reach[0] = reach[1] = 1.0;
             cfr(root, reach, 1.0);
         }
+    }
+
+    StrategyMap get_average_strategy() const {
+        StrategyMap out;
+        for (auto& [key, isd] : info_sets) {
+            auto avg = isd.average_strategy();
+            for (size_t i = 0; i < avg.size(); ++i) out[key][isd.actions[i]] = avg[i];
+        }
+        return out;
     }
 
 private:
