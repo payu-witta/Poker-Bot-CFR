@@ -34,8 +34,6 @@ struct InfoSetData {
     }
 };
 
-using StrategyMap = std::unordered_map<std::string, std::unordered_map<std::string, double>>;
-
 class CFRSolver {
 public:
     std::unordered_map<std::string, InfoSetData> info_sets;

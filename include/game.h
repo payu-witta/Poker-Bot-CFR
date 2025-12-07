@@ -3,8 +3,11 @@
 #include <memory>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 #include <vector>
+
+using StrategyMap = std::unordered_map<std::string, std::unordered_map<std::string, double>>;
 
 class GameNode {
 public:
