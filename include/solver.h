@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 struct InfoSetData {
@@ -30,5 +31,56 @@ struct InfoSetData {
         for (double x : s) total += x;
         for (double& x : s) x = total > 0.0 ? x / total : 1.0 / s.size();
         return s;
+    }
+};
+
+class CFRSolver {
+public:
+    std::unordered_map<std::string, InfoSetData> info_sets;
+    int iteration = 0;
+
+    void train(const std::shared_ptr<GameNode>& root, int n) {
+        double reach[2];
+        for (int t = 0; t < n; ++t) {
+            ++iteration;
+            reach[0] = reach[1] = 1.0;
+            cfr(root, reach, 1.0);
+        }
+    }
+
+private:
+    // reach reuses one raw array on purpose, no allocation on the recursive path
+    double cfr(const std::shared_ptr<GameNode>& node, double* reach, double chance_reach) {
+        if (node->is_terminal()) return node->utility(0);
+
+        if (node->is_chance_node()) {
+            double ev = 0.0;
+            for (auto& [next, prob] : node->chance_outcomes()) ev += prob * cfr(next, reach, chance_reach * prob);
+            return ev;
+        }
+
+        int player = node->current_player();
+        auto actions = node->legal_actions();
+        InfoSetData& isd = info_sets.try_emplace(node->information_set_key(), actions).first->second;
+        auto strat = isd.regret_matching();
+        int n = static_cast<int>(actions.size());
+
+        for (int i = 0; i < n; ++i) isd.strat_sum[i] += reach[player] * strat[i];
+
+        std::vector<double> vals(n);
+        double node_val = 0.0;
+        for (int i = 0; i < n; ++i) {
+            double old = reach[player];
+            reach[player] *= strat[i];
+            vals[i] = cfr(node->apply_action(actions[i]), reach, chance_reach);
+            reach[player] = old;
+            node_val += strat[i] * vals[i];
+        }
+
+        double cf_reach = reach[1 - player] * chance_reach;
+        double sign = player == 0 ? 1.0 : -1.0;
+        for (int i = 0; i < n; ++i) isd.regrets[i] += cf_reach * sign * (vals[i] - node_val);
+
+        return node_val;
     }
 };
