@@ -1,5 +1,7 @@
 #include "kuhn.h"
+#include "exploit.h"
 #include "leduc.h"
+#include "solver.h"
 
 #include <cmath>
 #include <functional>
@@ -208,6 +210,15 @@ void test_leduc_raise_cap() {
     ASSERT(has_bet(LeducNode(2, 0, -1, 1, "b", "")), "raise should be allowed after 1 bet");
 }
 
+void test_vanilla_kuhn_exploitability() {
+    auto root = std::make_shared<KuhnNode>(-1, -1, "");
+    CFRSolver solver;
+    solver.train(root, 10000);
+    double expl = compute_exploitability(root, solver.get_average_strategy());
+    std::cout << "  vanilla exploitability after 10k iters: " << expl << "\n";
+    ASSERT(expl < 0.01, "expected < 0.01, got " + std::to_string(expl));
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -225,6 +236,9 @@ int main() {
     run_test("info set keys", test_leduc_info_set_keys);
     run_test("info set count", test_leduc_info_set_count);
     run_test("raise cap", test_leduc_raise_cap);
+
+    std::cout << "--- CFR convergence ---\n\n";
+    run_test("vanilla cfr on kuhn", test_vanilla_kuhn_exploitability);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;
