@@ -219,6 +219,29 @@ void test_vanilla_kuhn_exploitability() {
     ASSERT(expl < 0.01, "expected < 0.01, got " + std::to_string(expl));
 }
 
+void test_kuhn_nash_properties() {
+    auto root = std::make_shared<KuhnNode>(-1, -1, "");
+    CFRSolver solver;
+    solver.train(root, 50000);
+    auto strat = solver.get_average_strategy();
+    const double tol = 0.05;
+
+    ASSERT(strat.count("Q:"), "Q: info set missing");
+    double q_bet = strat["Q:"].count("b") ? strat["Q:"]["b"] : 0.0;
+    std::cout << "  p0 Q bet prob: " << q_bet << "\n";
+    ASSERT(q_bet < tol, "p0 with Q should not bet");
+
+    ASSERT(strat.count("K:b"), "K:b info set missing");
+    double k_call = strat["K:b"]["c"];
+    std::cout << "  p1 K call prob facing a bet: " << k_call << "\n";
+    ASSERT(k_call > 1.0 - tol, "p1 with K should always call");
+
+    ASSERT(strat.count("J:b"), "J:b info set missing");
+    double j_fold = strat["J:b"]["f"];
+    std::cout << "  p1 J fold prob facing a bet: " << j_fold << "\n";
+    ASSERT(j_fold > 1.0 - tol, "p1 with J should always fold");
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -239,6 +262,7 @@ int main() {
 
     std::cout << "--- CFR convergence ---\n\n";
     run_test("vanilla cfr on kuhn", test_vanilla_kuhn_exploitability);
+    run_test("kuhn nash strategy properties", test_kuhn_nash_properties);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;
