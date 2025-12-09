@@ -34,10 +34,15 @@ struct InfoSetData {
     }
 };
 
+enum class SolverMode { VANILLA, CFR_PLUS };
+
 class CFRSolver {
 public:
     std::unordered_map<std::string, InfoSetData> info_sets;
+    SolverMode mode;
     int iteration = 0;
+
+    explicit CFRSolver(SolverMode m = SolverMode::VANILLA) : mode(m) {}
 
     void train(const std::shared_ptr<GameNode>& root, int n) {
         double reach[2];
@@ -74,7 +79,8 @@ private:
         auto strat = isd.regret_matching();
         int n = static_cast<int>(actions.size());
 
-        for (int i = 0; i < n; ++i) isd.strat_sum[i] += reach[player] * strat[i];
+        double weight = mode == SolverMode::CFR_PLUS ? iteration : 1.0;
+        for (int i = 0; i < n; ++i) isd.strat_sum[i] += weight * reach[player] * strat[i];
 
         std::vector<double> vals(n);
         double node_val = 0.0;
@@ -88,7 +94,10 @@ private:
 
         double cf_reach = reach[1 - player] * chance_reach;
         double sign = player == 0 ? 1.0 : -1.0;
-        for (int i = 0; i < n; ++i) isd.regrets[i] += cf_reach * sign * (vals[i] - node_val);
+        for (int i = 0; i < n; ++i) {
+            double r = isd.regrets[i] + cf_reach * sign * (vals[i] - node_val);
+            isd.regrets[i] = mode == SolverMode::CFR_PLUS ? std::max(r, 0.0) : r;
+        }
 
         return node_val;
     }
