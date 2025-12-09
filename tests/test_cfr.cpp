@@ -274,6 +274,17 @@ void test_cfr_plus_faster_than_vanilla() {
     ASSERT(plus < vanilla, "cfr+ should have a lower auc than vanilla");
 }
 
+void test_leduc_convergence() {
+    auto root = leduc_root();
+    for (auto [name, mode] : {std::pair{"vanilla", SolverMode::VANILLA}, std::pair{"cfr+", SolverMode::CFR_PLUS}}) {
+        CFRSolver solver(mode);
+        solver.train(root, 1000);
+        double expl = compute_exploitability(root, solver.get_average_strategy());
+        std::cout << "  " << name << " exploitability after 1k iters: " << expl << "\n";
+        ASSERT(expl < 0.1, std::string(name) + " should converge on leduc, got " + std::to_string(expl));
+    }
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -297,6 +308,7 @@ int main() {
     run_test("cfr+ on kuhn", test_cfr_plus_kuhn_exploitability);
     run_test("cfr+ faster than vanilla", test_cfr_plus_faster_than_vanilla);
     run_test("kuhn nash strategy properties", test_kuhn_nash_properties);
+    run_test("leduc convergence", test_leduc_convergence);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;
