@@ -219,6 +219,15 @@ void test_vanilla_kuhn_exploitability() {
     ASSERT(expl < 0.01, "expected < 0.01, got " + std::to_string(expl));
 }
 
+void test_cfr_plus_kuhn_exploitability() {
+    auto root = std::make_shared<KuhnNode>(-1, -1, "");
+    CFRSolver solver(SolverMode::CFR_PLUS);
+    solver.train(root, 1000);
+    double expl = compute_exploitability(root, solver.get_average_strategy());
+    std::cout << "  cfr+ exploitability after 1k iters: " << expl << "\n";
+    ASSERT(expl < 0.01, "expected < 0.01, got " + std::to_string(expl));
+}
+
 void test_kuhn_nash_properties() {
     auto root = std::make_shared<KuhnNode>(-1, -1, "");
     CFRSolver solver;
@@ -262,6 +271,7 @@ int main() {
 
     std::cout << "--- CFR convergence ---\n\n";
     run_test("vanilla cfr on kuhn", test_vanilla_kuhn_exploitability);
+    run_test("cfr+ on kuhn", test_cfr_plus_kuhn_exploitability);
     run_test("kuhn nash strategy properties", test_kuhn_nash_properties);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
