@@ -251,6 +251,29 @@ void test_kuhn_nash_properties() {
     ASSERT(j_fold > 1.0 - tol, "p1 with J should always fold");
 }
 
+void test_cfr_plus_faster_than_vanilla() {
+    // area under the exploitability curve over the same checkpoints
+    std::vector<int> checkpoints = {10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000};
+    auto root = std::make_shared<KuhnNode>(-1, -1, "");
+
+    auto auc = [&](SolverMode mode) {
+        CFRSolver solver(mode);
+        double total = 0.0;
+        int prev = 0;
+        for (int cp : checkpoints) {
+            solver.train(root, cp - prev);
+            prev = cp;
+            total += compute_exploitability(root, solver.get_average_strategy());
+        }
+        return total;
+    };
+
+    double vanilla = auc(SolverMode::VANILLA);
+    double plus = auc(SolverMode::CFR_PLUS);
+    std::cout << "  vanilla auc: " << vanilla << "\n  cfr+ auc: " << plus << "\n";
+    ASSERT(plus < vanilla, "cfr+ should have a lower auc than vanilla");
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -272,6 +295,7 @@ int main() {
     std::cout << "--- CFR convergence ---\n\n";
     run_test("vanilla cfr on kuhn", test_vanilla_kuhn_exploitability);
     run_test("cfr+ on kuhn", test_cfr_plus_kuhn_exploitability);
+    run_test("cfr+ faster than vanilla", test_cfr_plus_faster_than_vanilla);
     run_test("kuhn nash strategy properties", test_kuhn_nash_properties);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
