@@ -11,6 +11,9 @@ endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -flto -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fsanitize=address,undefined")
 
+add_executable(cfr_solver src/main.cpp)
+target_include_directories(cfr_solver PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
 add_executable(test_cfr tests/test_cfr.cpp)
 target_include_directories(test_cfr PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
