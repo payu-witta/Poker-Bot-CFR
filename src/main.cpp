@@ -4,6 +4,7 @@
 #include "solver.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <iomanip>
@@ -74,6 +75,17 @@ int main(int argc, char* argv[]) {
 
     CFRSolver solver(args.solver == "cfr_plus" ? SolverMode::CFR_PLUS : SolverMode::VANILLA);
 
+    if (args.verbose) {
+        std::cout << "Game: " << (args.game == "kuhn" ? "Kuhn Poker" : "Leduc Hold'em") << "\n"
+                  << "Solver: " << (args.solver == "cfr_plus" ? "CFR+" : "Vanilla CFR") << "\n"
+                  << "Iters: " << args.iterations << "\n"
+                  << "Output: " << (args.output.empty() ? "stdout" : args.output) << "\n"
+                  << std::string(40, '-') << "\n";
+    }
+
+    auto start = std::chrono::steady_clock::now();
+    auto elapsed = [&] { return std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count(); };
+
     std::cout << "iteration,exploitability\n";
     int prev = 0;
     for (int cp : log_checkpoints(args.iterations, args.eval_points)) {
@@ -81,6 +93,13 @@ int main(int argc, char* argv[]) {
         prev = cp;
         double expl = compute_exploitability(root, solver.get_average_strategy());
         std::cout << cp << "," << std::fixed << std::setprecision(8) << expl << "\n";
+
+        if (args.verbose) {
+            std::cout << "  iter " << std::setw(8) << cp << " | exploitability: " << std::fixed << std::setprecision(6) << std::setw(10) << expl
+                      << " | elapsed: " << std::setprecision(1) << elapsed() << "s" << std::endl;
+        }
     }
+
+    if (args.verbose) std::cout << std::string(40, '-') << "\nDone. Total time: " << std::fixed << std::setprecision(2) << elapsed() << "s\n";
     return 0;
 }
