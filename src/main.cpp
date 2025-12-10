@@ -1,6 +1,12 @@
+#include "exploit.h"
+#include "kuhn.h"
+#include "leduc.h"
+#include "solver.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -60,6 +66,21 @@ int main(int argc, char* argv[]) {
     if (args.solver != "vanilla" && args.solver != "cfr_plus") {
         std::cerr << "Error: --solver must be 'vanilla' or 'cfr_plus'\n";
         return 1;
+    }
+
+    std::shared_ptr<GameNode> root;
+    if (args.game == "kuhn") root = std::make_shared<KuhnNode>(-1, -1, "");
+    else root = std::make_shared<LeducNode>(-1, -1, -1, 1, "", "", true, 0);
+
+    CFRSolver solver(args.solver == "cfr_plus" ? SolverMode::CFR_PLUS : SolverMode::VANILLA);
+
+    std::cout << "iteration,exploitability\n";
+    int prev = 0;
+    for (int cp : log_checkpoints(args.iterations, args.eval_points)) {
+        if (cp > prev) solver.train(root, cp - prev);
+        prev = cp;
+        double expl = compute_exploitability(root, solver.get_average_strategy());
+        std::cout << cp << "," << std::fixed << std::setprecision(8) << expl << "\n";
     }
     return 0;
 }
