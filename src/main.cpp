@@ -1,6 +1,9 @@
+#include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <vector>
 
 struct Args {
     std::string game = "kuhn";
@@ -34,6 +37,17 @@ Args parse_args(int argc, char* argv[]) {
         }
     }
     return args;
+}
+
+std::vector<int> log_checkpoints(int total, int n_points) {
+    std::vector<int> pts;
+    for (int i = 0; i < n_points; ++i) {
+        double t = std::pow(static_cast<double>(total), static_cast<double>(i) / (n_points - 1));
+        int cp = std::max(1, static_cast<int>(std::round(t)));
+        if (pts.empty() || cp != pts.back()) pts.push_back(cp);
+    }
+    if (pts.back() != total) pts.push_back(total);
+    return pts;
 }
 
 int main(int argc, char* argv[]) {
