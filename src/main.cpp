@@ -98,6 +98,7 @@ int main(int argc, char* argv[]) {
             std::cerr << "Error: cannot open output file: " << args.output << "\n";
             return 1;
         }
+        out = &file;
     }
 
     *out << "iteration,exploitability\n";
