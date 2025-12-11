@@ -7,6 +7,8 @@
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -86,13 +88,25 @@ int main(int argc, char* argv[]) {
     auto start = std::chrono::steady_clock::now();
     auto elapsed = [&] { return std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count(); };
 
-    std::cout << "iteration,exploitability\n";
+    std::ofstream file;
+    std::ostream* out = &std::cout;
+    if (!args.output.empty()) {
+        std::filesystem::path p(args.output);
+        if (p.has_parent_path()) std::filesystem::create_directories(p.parent_path());
+        file.open(args.output);
+        if (!file) {
+            std::cerr << "Error: cannot open output file: " << args.output << "\n";
+            return 1;
+        }
+    }
+
+    *out << "iteration,exploitability\n";
     int prev = 0;
     for (int cp : log_checkpoints(args.iterations, args.eval_points)) {
         if (cp > prev) solver.train(root, cp - prev);
         prev = cp;
         double expl = compute_exploitability(root, solver.get_average_strategy());
-        std::cout << cp << "," << std::fixed << std::setprecision(8) << expl << "\n";
+        *out << cp << "," << std::fixed << std::setprecision(8) << expl << "\n";
 
         if (args.verbose) {
             std::cout << "  iter " << std::setw(8) << cp << " | exploitability: " << std::fixed << std::setprecision(6) << std::setw(10) << expl
