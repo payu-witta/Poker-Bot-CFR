@@ -58,3 +58,20 @@ here. With beta = 0 the negative regret multiplier is a constant 1/2, so past
 mistakes are halved every iteration instead of being driven to minus infinity.
 The paper reports that DCFR with these parameters beat CFR+ on every heads-up
 no-limit hold'em subgame it tested, typically by a factor of 2 to 3.
+
+### Exploitability
+
+Exploitability measures how far a strategy profile is from a Nash equilibrium:
+the sum of both players' gains from switching to a best response. Zero means
+Nash equilibrium.
+
+### Games
+
+Kuhn Poker
+- 2 players, ranks J/Q/K, 1 chip ante each, one round of betting, 12 information sets.
+- Hole cards are dealt from a deck with two of each rank, so both players can hold the same rank.
+
+Leduc Hold'em
+- 2 players, 6 cards (J/J/Q/Q/K/K), two rounds of betting with a community card in between.
+- Bets are 2 chips in round 1 and 4 chips in round 2, with at most 2 bets per round.
+- 288 information sets, a standard benchmark for imperfect-information solvers.
