@@ -15,6 +15,22 @@ consistently outperform CFR+, the algorithm behind the Libratus poker AI. The
 goal here is to implement the solvers from scratch, test them, and check that
 claim empirically.
 
+## Layout
+
+```
+include/
+  game.h       game node interface, card helpers
+  kuhn.h       Kuhn Poker
+  leduc.h      Leduc Hold'em
+  solver.h     info sets and the CFR solver
+  exploit.h    best response and exploitability
+src/main.cpp   solver binary, writes exploitability CSVs
+tests/         C++ test suite
+scripts/       plotting
+results/       CSVs from the solver (not tracked)
+plots/         PNGs from plot.py (not tracked)
+```
+
 ## Background
 
 ### Counterfactual Regret Minimization
@@ -75,3 +91,16 @@ Leduc Hold'em
 - 2 players, 6 cards (J/J/Q/Q/K/K), two rounds of betting with a community card in between.
 - Bets are 2 chips in round 1 and 4 chips in round 2, with at most 2 bets per round.
 - 288 information sets, a standard benchmark for imperfect-information solvers.
+
+## Building
+
+Needs a C++20 compiler (GCC 10+ or Clang 12+) and CMake 3.14+.
+
+```bash
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+cd ..
+```
+
+This produces `build/cfr_solver` and `build/test_cfr`.
