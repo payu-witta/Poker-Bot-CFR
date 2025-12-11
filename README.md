@@ -104,3 +104,22 @@ cd ..
 ```
 
 This produces `build/cfr_solver` and `build/test_cfr`.
+
+## Running the solver
+
+```bash
+./build/cfr_solver --game kuhn --solver vanilla --iterations 10000 --output results/kuhn_vanilla.csv
+./build/cfr_solver --game kuhn --solver cfr_plus --iterations 10000 --output results/kuhn_cfr_plus.csv
+./build/cfr_solver --game leduc --solver vanilla --iterations 100000 --output results/leduc_vanilla.csv
+./build/cfr_solver --game leduc --solver cfr_plus --iterations 100000 --output results/leduc_cfr_plus.csv
+```
+
+Larger iteration counts are better, these are just a starting point.
+
+Options
+- `--game kuhn|leduc`, default kuhn
+- `--solver vanilla|cfr_plus`, default vanilla
+- `--iterations N`, default 10000
+- `--eval-points N`, number of log spaced checkpoints where exploitability is measured, default 60
+- `--output path.csv`, default stdout
+- `--quiet`, suppress progress output
