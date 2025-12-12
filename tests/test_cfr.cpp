@@ -285,6 +285,36 @@ void test_leduc_convergence() {
     }
 }
 
+void test_dcfr_kuhn_exploitability() {
+    auto root = std::make_shared<KuhnNode>(-1, -1, "");
+    CFRSolver solver(SolverMode::DCFR);
+    solver.train(root, 1000);
+    double expl = compute_exploitability(root, solver.get_average_strategy());
+    std::cout << "  dcfr exploitability after 1k iters: " << expl << "\n";
+    ASSERT(expl < 0.01, "expected < 0.01, got " + std::to_string(expl));
+}
+
+void test_dcfr_discounts_regrets() {
+    // dcfr shrinks every accumulated regret by a factor below 1 each iteration, vanilla never does
+    auto root = std::make_shared<KuhnNode>(-1, -1, "");
+    CFRSolver vanilla(SolverMode::VANILLA);
+    CFRSolver dcfr(SolverMode::DCFR);
+    vanilla.train(root, 50);
+    dcfr.train(root, 50);
+
+    double vanilla_l1 = 0.0;
+    double dcfr_l1 = 0.0;
+    for (auto& [key, isd] : vanilla.info_sets) {
+        for (double r : isd.regrets) vanilla_l1 += std::abs(r);
+    }
+    for (auto& [key, isd] : dcfr.info_sets) {
+        for (double r : isd.regrets) dcfr_l1 += std::abs(r);
+    }
+    std::cout << "  regret l1 after 50 iters: vanilla " << vanilla_l1 << ", dcfr " << dcfr_l1 << "\n";
+    ASSERT(vanilla_l1 > 1e-9, "vanilla should have nonzero regrets");
+    ASSERT(dcfr_l1 < vanilla_l1, "dcfr regrets should be smaller than vanilla");
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -309,6 +339,8 @@ int main() {
     run_test("cfr+ faster than vanilla", test_cfr_plus_faster_than_vanilla);
     run_test("kuhn nash strategy properties", test_kuhn_nash_properties);
     run_test("leduc convergence", test_leduc_convergence);
+    run_test("dcfr on kuhn", test_dcfr_kuhn_exploitability);
+    run_test("dcfr discounts regrets", test_dcfr_discounts_regrets);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;

@@ -105,7 +105,7 @@ private:
 
         double ta = std::pow(t, dcfr.alpha);
         double tb = std::pow(t, dcfr.beta);
-        double pos_mult = ta / ta + 1.0;
+        double pos_mult = ta / (ta + 1.0);
         double neg_mult = tb / (tb + 1.0);
         double cf_reach = reach[1 - player] * chance_reach;
         double sign = player == 0 ? 1.0 : -1.0;
