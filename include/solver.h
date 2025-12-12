@@ -3,6 +3,7 @@
 #include "game.h"
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -86,7 +87,10 @@ private:
         auto strat = isd.regret_matching();
         int n = static_cast<int>(actions.size());
 
-        double weight = mode == SolverMode::CFR_PLUS ? iteration : 1.0;
+        double t = iteration;
+        double weight = 1.0;
+        if (mode == SolverMode::CFR_PLUS) weight = t;
+        else if (mode == SolverMode::DCFR) weight = std::pow(t / (t + 1.0), dcfr.gamma);
         for (int i = 0; i < n; ++i) isd.strat_sum[i] += weight * reach[player] * strat[i];
 
         std::vector<double> vals(n);
@@ -99,11 +103,17 @@ private:
             node_val += strat[i] * vals[i];
         }
 
+        double ta = std::pow(t, dcfr.alpha);
+        double tb = std::pow(t, dcfr.beta);
+        double pos_mult = ta / ta + 1.0;
+        double neg_mult = tb / (tb + 1.0);
         double cf_reach = reach[1 - player] * chance_reach;
         double sign = player == 0 ? 1.0 : -1.0;
         for (int i = 0; i < n; ++i) {
             double r = isd.regrets[i] + cf_reach * sign * (vals[i] - node_val);
-            isd.regrets[i] = mode == SolverMode::CFR_PLUS ? std::max(r, 0.0) : r;
+            if (mode == SolverMode::CFR_PLUS) r = std::max(r, 0.0);
+            else if (mode == SolverMode::DCFR) r *= r > 0.0 ? pos_mult : neg_mult;
+            isd.regrets[i] = r;
         }
 
         return node_val;
