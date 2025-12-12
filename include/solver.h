@@ -34,15 +34,22 @@ struct InfoSetData {
     }
 };
 
-enum class SolverMode { VANILLA, CFR_PLUS };
+enum class SolverMode { VANILLA, CFR_PLUS, DCFR };
+
+struct DCFRParams {
+    double alpha = 1.5;
+    double beta = 0.0;
+    double gamma = 2.0;
+};
 
 class CFRSolver {
 public:
     std::unordered_map<std::string, InfoSetData> info_sets;
     SolverMode mode;
+    DCFRParams dcfr;
     int iteration = 0;
 
-    explicit CFRSolver(SolverMode m = SolverMode::VANILLA) : mode(m) {}
+    explicit CFRSolver(SolverMode m = SolverMode::VANILLA, DCFRParams params = {}) : mode(m), dcfr(params) {}
 
     void train(const std::shared_ptr<GameNode>& root, int n) {
         double reach[2];
