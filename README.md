@@ -123,3 +123,17 @@ Options
 - `--eval-points N`, number of log spaced checkpoints where exploitability is measured, default 60
 - `--output path.csv`, default stdout
 - `--quiet`, suppress progress output
+
+## Running tests
+
+```bash
+./build/test_cfr
+# or through ctest
+cd build && ctest --output-on-failure
+```
+
+The suite covers
+- game logic for both games (terminal counts, zero-sum, utilities, info set keys and counts)
+- convergence against exploitability thresholds
+- Nash strategy properties on Kuhn Poker
+- CFR+ converging faster than vanilla CFR
