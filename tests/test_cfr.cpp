@@ -315,6 +315,23 @@ void test_dcfr_discounts_regrets() {
     ASSERT(dcfr_l1 < vanilla_l1, "dcfr regrets should be smaller than vanilla");
 }
 
+void test_dcfr_beats_cfr_plus_early() {
+    // both solvers converge to the same equilibrium, so only compare before they converge
+    auto root = std::make_shared<KuhnNode>(-1, -1, "");
+    bool dcfr_wins = false;
+    for (int cp : {5, 10, 20, 50}) {
+        CFRSolver plus(SolverMode::CFR_PLUS);
+        CFRSolver dcfr(SolverMode::DCFR);
+        plus.train(root, cp);
+        dcfr.train(root, cp);
+        double pe = compute_exploitability(root, plus.get_average_strategy());
+        double de = compute_exploitability(root, dcfr.get_average_strategy());
+        std::cout << "  iter " << cp << ": cfr+ " << pe << ", dcfr " << de << "\n";
+        if (de < pe) dcfr_wins = true;
+    }
+    ASSERT(dcfr_wins, "dcfr should beat cfr+ at some early checkpoint");
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -341,6 +358,7 @@ int main() {
     run_test("leduc convergence", test_leduc_convergence);
     run_test("dcfr on kuhn", test_dcfr_kuhn_exploitability);
     run_test("dcfr discounts regrets", test_dcfr_discounts_regrets);
+    run_test("dcfr beats cfr+ early", test_dcfr_beats_cfr_plus_early);
 
     std::cout << "passed: " << passed << ", failed: " << failed << "\n";
     return failed == 0 ? 0 : 1;
