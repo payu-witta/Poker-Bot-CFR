@@ -110,15 +110,17 @@ This produces `build/cfr_solver` and `build/test_cfr`.
 ```bash
 ./build/cfr_solver --game kuhn --solver vanilla --iterations 10000 --output results/kuhn_vanilla.csv
 ./build/cfr_solver --game kuhn --solver cfr_plus --iterations 10000 --output results/kuhn_cfr_plus.csv
+./build/cfr_solver --game kuhn --solver dcfr --iterations 10000 --output results/kuhn_dcfr.csv
 ./build/cfr_solver --game leduc --solver vanilla --iterations 100000 --output results/leduc_vanilla.csv
 ./build/cfr_solver --game leduc --solver cfr_plus --iterations 100000 --output results/leduc_cfr_plus.csv
+./build/cfr_solver --game leduc --solver dcfr --iterations 100000 --output results/leduc_dcfr.csv
 ```
 
 Larger iteration counts are better, these are just a starting point.
 
 Options
 - `--game kuhn|leduc`, default kuhn
-- `--solver vanilla|cfr_plus`, default vanilla
+- `--solver vanilla|cfr_plus|dcfr`, default vanilla
 - `--iterations N`, default 10000
 - `--eval-points N`, number of log spaced checkpoints where exploitability is measured, default 60
 - `--output path.csv`, default stdout
@@ -137,3 +139,4 @@ The suite covers
 - convergence against exploitability thresholds
 - Nash strategy properties on Kuhn Poker
 - CFR+ converging faster than vanilla CFR
+- DCFR discounting regrets and beating CFR+ at early checkpoints

@@ -37,7 +37,7 @@ Args parse_args(int argc, char* argv[]) {
         else if (key == "--help") {
             std::cout << "Usage: cfr_solver [options]\n"
                          "  --game        kuhn|leduc             (default: kuhn)\n"
-                         "  --solver      vanilla|cfr_plus       (default: vanilla)\n"
+                         "  --solver      vanilla|cfr_plus|dcfr  (default: vanilla)\n"
                          "  --iterations  N                      (default: 10000)\n"
                          "  --eval-points N                      (default: 60)\n"
                          "  --output      path/to/output.csv     (default: stdout)\n"
@@ -66,8 +66,8 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: --game must be 'kuhn' or 'leduc'\n";
         return 1;
     }
-    if (args.solver != "vanilla" && args.solver != "cfr_plus") {
-        std::cerr << "Error: --solver must be 'vanilla' or 'cfr_plus'\n";
+    if (args.solver != "vanilla" && args.solver != "cfr_plus" && args.solver != "dcfr") {
+        std::cerr << "Error: --solver must be 'vanilla', 'cfr_plus' or 'dcfr'\n";
         return 1;
     }
 
@@ -75,11 +75,20 @@ int main(int argc, char* argv[]) {
     if (args.game == "kuhn") root = std::make_shared<KuhnNode>(-1, -1, "");
     else root = std::make_shared<LeducNode>(-1, -1, -1, 1, "", "", true, 0);
 
-    CFRSolver solver(args.solver == "cfr_plus" ? SolverMode::CFR_PLUS : SolverMode::VANILLA);
+    SolverMode mode = SolverMode::VANILLA;
+    std::string solver_label = "Vanilla CFR";
+    if (args.solver == "cfr_plus") {
+        mode = SolverMode::CFR_PLUS;
+        solver_label = "CFR+";
+    } else if (args.solver == "dcfr") {
+        mode = SolverMode::DCFR;
+        solver_label = "DCFR (alpha=1.5, beta=0, gamma=2)";
+    }
+    CFRSolver solver(mode);
 
     if (args.verbose) {
         std::cout << "Game: " << (args.game == "kuhn" ? "Kuhn Poker" : "Leduc Hold'em") << "\n"
-                  << "Solver: " << (args.solver == "cfr_plus" ? "CFR+" : "Vanilla CFR") << "\n"
+                  << "Solver: " << solver_label << "\n"
                   << "Iters: " << args.iterations << "\n"
                   << "Output: " << (args.output.empty() ? "stdout" : args.output) << "\n"
                   << std::string(40, '-') << "\n";

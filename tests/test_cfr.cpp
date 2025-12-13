@@ -276,7 +276,7 @@ void test_cfr_plus_faster_than_vanilla() {
 
 void test_leduc_convergence() {
     auto root = leduc_root();
-    for (auto [name, mode] : {std::pair{"vanilla", SolverMode::VANILLA}, std::pair{"cfr+", SolverMode::CFR_PLUS}}) {
+    for (auto [name, mode] : {std::pair{"vanilla", SolverMode::VANILLA}, std::pair{"cfr+", SolverMode::CFR_PLUS}, std::pair{"dcfr", SolverMode::DCFR}}) {
         CFRSolver solver(mode);
         solver.train(root, 1000);
         double expl = compute_exploitability(root, solver.get_average_strategy());
