@@ -92,7 +92,7 @@ def main():
 
     for g in games:
         if results[g]:
-            plot_game(results[g], g, os.path.join(args.results_dir, f"{g}_comparison.png"))
+            plot_game(results[g], g, os.path.join(args.plots_dir, f"{g}_comparison.png"))
     if len(games) == 2:
         plot_all(results, os.path.join(args.plots_dir, "combined_comparison.png"))
 
