@@ -1,5 +1,7 @@
+import argparse
 import csv
 import os
+import sys
 
 import matplotlib.pyplot as plt
 
@@ -55,3 +57,51 @@ def plot_game(res, game, path):
     draw(ax, res, True)
     ax.set_title(f"CFR convergence on {GAMES[game]}", fontweight="bold")
     save(fig, path)
+
+
+def plot_all(results, path):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5.5))
+    for ax, game in zip(axes, GAMES):
+        draw(ax, results.get(game, {}), False)
+        ax.set_title(GAMES[game], fontweight="bold")
+    fig.suptitle("Vanilla CFR vs CFR+ vs DCFR", fontweight="bold", y=1.02)
+    save(fig, path)
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Plot CFR convergence from the solver CSVs")
+    ap.add_argument("--game", choices=["kuhn", "leduc", "all"], default="all")
+    ap.add_argument("--results-dir", default="results")
+    ap.add_argument("--plots-dir", default="plots")
+    args = ap.parse_args()
+
+    games = list(GAMES) if args.game == "all" else [args.game]
+    results = {}
+    for g in games:
+        results[g] = {}
+        for s in SOLVERS:
+            path = os.path.join(args.results_dir, f"{g}_{s}.csv")
+            if os.path.exists(path):
+                results[g][s] = load_csv(path)
+                print(f"loaded {path} ({len(results[g][s][0])} checkpoints)")
+            else:
+                print(f"missing {path}, see the README for how to generate it")
+
+    if not any(results.values()):
+        sys.exit(1)
+
+    for g in games:
+        if results[g]:
+            plot_game(results[g], g, os.path.join(args.results_dir, f"{g}_comparison.png"))
+    if len(games) == 2:
+        plot_all(results, os.path.join(args.plots_dir, "combined_comparison.png"))
+
+    print(f"\n{'game':<16}{'solver':<36}final exploitability")
+    for g in games:
+        for s in SOLVERS:
+            if s in results[g]:
+                print(f"{GAMES[g]:<16}{STYLE[s][2]:<36}{results[g][s][1][-1]:.6f}")
+
+
+if __name__ == "__main__":
+    main()
