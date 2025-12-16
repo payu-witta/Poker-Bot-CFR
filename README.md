@@ -140,3 +140,16 @@ The suite covers
 - Nash strategy properties on Kuhn Poker
 - CFR+ converging faster than vanilla CFR
 - DCFR discounting regrets and beating CFR+ at early checkpoints
+
+## Plotting
+
+```bash
+pip install -r requirements.txt
+python scripts/plot.py
+python scripts/plot.py --game kuhn
+```
+
+Plots are written to `plots/`: `kuhn_comparison.png`, `leduc_comparison.png` and
+`combined_comparison.png`. Every solver with a CSV in `results/` is drawn, and a
+table of final exploitabilities is printed at the end. Zero exploitability
+values are dropped because the plots use a log scale.
