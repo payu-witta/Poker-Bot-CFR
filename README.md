@@ -153,3 +153,33 @@ Plots are written to `plots/`: `kuhn_comparison.png`, `leduc_comparison.png` and
 `combined_comparison.png`. Every solver with a CSV in `results/` is drawn, and a
 table of final exploitabilities is printed at the end. Zero exploitability
 values are dropped because the plots use a log scale.
+
+## Implementation notes
+
+### Header only
+
+Everything in `include/` is header only, so the solver binary and the tests
+just add `include/` to their include path and compile one source file each.
+
+### Solver
+
+`CFRSolver` is game agnostic. It only talks to the `GameNode` interface, so a
+new game is one class that implements it. The three variants share one
+traversal and differ in how the strategy sum is weighted and how regrets are
+updated after each node.
+
+The reach probabilities are passed down the recursion as a raw `double[2]`
+instead of a `std::array` or `std::vector`, to keep allocations off the hot
+path.
+
+### Exploitability
+
+Exploitability is computed for each player in two passes, and the two best
+response values are summed.
+
+1. A traversal follows the fixed strategy for the opponent and accumulates
+   reach weighted action values per information set for the best response
+   player.
+2. The best response picks the highest value action in every information set,
+   and a second pass evaluates that deterministic strategy against the fixed
+   one.
