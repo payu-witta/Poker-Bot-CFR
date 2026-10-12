@@ -43,6 +43,9 @@ Args parse_args(int argc, char* argv[]) {
                          "  --output      path/to/output.csv     (default: stdout)\n"
                          "  --quiet       suppress progress output\n";
             std::exit(0);
+        } else {
+            std::cerr << "Error: unknown option or missing value: " << key << "\n";
+            std::exit(1);
         }
     }
     return args;
@@ -68,6 +71,11 @@ int main(int argc, char* argv[]) {
     }
     if (args.solver != "vanilla" && args.solver != "cfr_plus" && args.solver != "dcfr") {
         std::cerr << "Error: --solver must be 'vanilla', 'cfr_plus' or 'dcfr'\n";
+        return 1;
+    }
+
+    if (args.iterations < 1 || args.eval_points < 2) {
+        std::cerr << "Error: --iterations must be >= 1 and --eval-points must be >= 2\n";
         return 1;
     }
 
