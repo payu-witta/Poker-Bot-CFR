@@ -225,7 +225,7 @@ void test_cfr_plus_kuhn_exploitability() {
     solver.train(root, 1000);
     double expl = compute_exploitability(root, solver.get_average_strategy());
     std::cout << "  cfr+ exploitability after 1k iters: " << expl << "\n";
-    ASSERT(expl < 0.01, "expected < 0.01, got " + std::to_string(expl));
+    ASSERT(expl < 0.02, "expected < 0.02, got " + std::to_string(expl));
 }
 
 void test_kuhn_nash_properties() {
@@ -291,7 +291,7 @@ void test_dcfr_kuhn_exploitability() {
     solver.train(root, 1000);
     double expl = compute_exploitability(root, solver.get_average_strategy());
     std::cout << "  dcfr exploitability after 1k iters: " << expl << "\n";
-    ASSERT(expl < 0.01, "expected < 0.01, got " + std::to_string(expl));
+    ASSERT(expl < 0.02, "expected < 0.02, got " + std::to_string(expl));
 }
 
 void test_dcfr_discounts_regrets() {
@@ -332,6 +332,13 @@ void test_dcfr_beats_cfr_plus_early() {
     ASSERT(dcfr_wins, "dcfr should beat cfr+ at some early checkpoint");
 }
 
+void test_uniform_strategy_is_exploitable() {
+    auto root = std::make_shared<KuhnNode>(-1, -1, "");
+    double expl = compute_exploitability(root, StrategyMap{});
+    std::cout << "  uniform strategy exploitability: " << expl << "\n";
+    ASSERT(expl > 0.1, "a uniform strategy should be clearly exploitable, got " + std::to_string(expl));
+}
+
 int main() {
     std::cout << "--- Kuhn Poker ---\n\n";
     run_test("terminal node count", test_kuhn_terminal_count);
@@ -351,6 +358,7 @@ int main() {
     run_test("raise cap", test_leduc_raise_cap);
 
     std::cout << "--- CFR convergence ---\n\n";
+    run_test("uniform strategy is exploitable", test_uniform_strategy_is_exploitable);
     run_test("vanilla cfr on kuhn", test_vanilla_kuhn_exploitability);
     run_test("cfr+ on kuhn", test_cfr_plus_kuhn_exploitability);
     run_test("cfr+ faster than vanilla", test_cfr_plus_faster_than_vanilla);

@@ -174,12 +174,14 @@ path.
 
 ### Exploitability
 
-Exploitability is computed for each player in two passes, and the two best
-response values are summed.
+Exploitability is computed for each player and the two best response values
+are summed.
 
-1. A traversal follows the fixed strategy for the opponent and accumulates
-   reach weighted action values per information set for the best response
-   player.
-2. The best response picks the highest value action in every information set,
-   and a second pass evaluates that deterministic strategy against the fixed
-   one.
+1. A traversal follows the fixed strategy for the opponent and groups the best
+   response player's nodes by information set, each with the opponent and
+   chance reach of the node.
+2. Information sets are processed deepest first. For each one the best response
+   picks the action with the highest reach weighted value, where the value of
+   each child is evaluated with the play already chosen deeper in the tree.
+3. A final pass evaluates the resulting deterministic strategy against the
+   fixed one.
